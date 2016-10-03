@@ -1,4 +1,3 @@
-
 // os.c
 // Runs on LM4F120/TM4C123/MSP432
 // Lab 2 starter file.
