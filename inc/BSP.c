@@ -2394,7 +2394,8 @@ void BSP_PeriodicTask_StopC(void){
 //          so clock = 80/80 = 1 MHz
 void BSP_Time_Init(void){long sr;
   // ***************** Wide Timer5B initialization *****************
-  SYSCTL_RCGCWTIMER_R |= 0x20;     // activate clock for Wide Timer5
+  sr = StartCritical(); 
+	SYSCTL_RCGCWTIMER_R |= 0x20;     // activate clock for Wide Timer5
   while((SYSCTL_PRWTIMER_R&0x20) == 0){};// allow time for clock to stabilize
   WTIMER5_CTL_R &= ~TIMER_CTL_TBEN;// disable Wide Timer5B during setup
   WTIMER5_CFG_R = TIMER_CFG_16_BIT;// configure for 32-bit timer mode
