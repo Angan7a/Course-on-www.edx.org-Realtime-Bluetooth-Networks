@@ -71,6 +71,7 @@ int OS_AddThreads(void(*thread0)(void),
                   void(*thread4)(void),
                   void(*thread5)(void)){
   // **similar to Lab 2. initialize as not blocked, not sleeping****
+	int32_t status;
   status = StartCritical();
   tcbs[0].next = &tcbs[1]; // 0 points to 1
   tcbs[1].next = &tcbs[2]; // 1 points to 2
@@ -171,10 +172,10 @@ void OS_InitSemaphore(int32_t *semaPt, int32_t value){
 void OS_Wait(int32_t *semaPt){
 //***IMPLEMENT THIS***
   DisableInterrupts();
-	while(*semaPt == 0) {
+	*semaPt = *semaPt - 1;
+	if(*semaPt < 0) {
 		EnableInterrupts();
 	}
-	*semaPt = *semaPt - 1;
 	EnableInterrupts();
 
 }
@@ -187,9 +188,11 @@ void OS_Wait(int32_t *semaPt){
 // Outputs: none
 void OS_Signal(int32_t *semaPt){
 //***IMPLEMENT THIS***
-  	DisableInterrupts();
+  DisableInterrupts();
 	*semaPt = *semaPt + 1;
-EnableInterrupts();
+	if((*semaPt) <=0){
+	}
+	EnableInterrupts();
 }
 
 #define FSIZE 10    // can be any size
