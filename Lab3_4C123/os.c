@@ -18,7 +18,7 @@ void StartOS(void);
 struct tcb{
   int32_t *sp;       // pointer to stack (valid for threads not running
   struct tcb *next;  // linked-list pointer
-  struct tcb *blocked; // nonzero if blocked on this semaphore
+  int32_t *blocked; // nonzero if blocked on this semaphore
    // nonzero if this thread is sleeping
 //*FILL THIS IN****
 };
@@ -177,8 +177,9 @@ void OS_Wait(int32_t *semaPt){
   DisableInterrupts();
   *semaPt = *semaPt - 1;
   if(*semaPt < 0) {
-     EnableInterrupts();
-     RunPt->blocked = s;
+    RunPt->blocked = semaPt;
+	  EnableInterrupts();
+		OS_Suspend();       // run thread switcher
   }
   EnableInterrupts();
 
@@ -192,9 +193,15 @@ void OS_Wait(int32_t *semaPt){
 // Outputs: none
 void OS_Signal(int32_t *semaPt){
 //***IMPLEMENT THIS***
+	tcbType *pt;
   DisableInterrupts();
 	*semaPt = *semaPt + 1;
 	if((*semaPt) <=0){
+		pt = RunPt->next;
+		while(pt->blocked != semaPt){
+      pt = pt->next;
+    }
+    pt->blocked = 0;    // wakeup this one
 	}
 	EnableInterrupts();
 }

@@ -469,7 +469,7 @@ void Task7(void){
 // to work on this step, you must rename all other main()
 // functions in this file.
 int32_t s1,s2;
-int main(void){
+int main_step1(void){
   OS_InitSemaphore(&s1, 0);
   OS_InitSemaphore(&s2, 1);
   while(1){
@@ -559,7 +559,7 @@ void TaskF(void){ // consumer
   }
 }
 
-int main_step2(void){
+int main(void){
   OS_Init();
   Profile_Init();  // initialize the 7 hardware profiling pins
   OS_InitSemaphore(&sAB, 0);
