@@ -559,7 +559,7 @@ void TaskF(void){ // consumer
   }
 }
 
-int main(void){
+int main_step2(void){
   OS_Init();
   Profile_Init();  // initialize the 7 hardware profiling pins
   OS_InitSemaphore(&sAB, 0);
@@ -655,12 +655,12 @@ void TaskL(void){ // dummy
   }
 }
 
-int main_step3(void){
+int main(void){
   OS_Init();
   Profile_Init();  // initialize the 7 hardware profiling pins
   OS_FIFO_Init();
   OS_AddThreads(&TaskG, &TaskH, &TaskI, &TaskJ, &TaskK, &TaskL);
-//  TExaS_Init(LOGICANALYZER, 1000); // initialize the Lab 3 grader
+ // TExaS_Init(LOGICANALYZER, 1000); // initialize the Lab 3 grader
   TExaS_Init(GRADESTEP3, 1000);    // initialize the Lab 3 grader
   OS_Launch(BSP_Clock_GetFreq()/1000);
   return 0;             // this never executes

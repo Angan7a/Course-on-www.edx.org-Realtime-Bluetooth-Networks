@@ -223,6 +223,7 @@ void OS_FIFO_Init(void){
 	PutI = GetI = 0;
 	OS_InitSemaphore(&CurrentSize, 0);
 	LostData = 0;
+	//CurrentSize = 0;
 }
 
 // ******** OS_FIFO_Put ************
@@ -233,12 +234,12 @@ void OS_FIFO_Init(void){
 // Outputs: 0 if successful, -1 if the FIFO is full
 int OS_FIFO_Put(uint32_t data){
 //***IMPLEMENT THIS***
-	if(CurrentSize == FIFOSIZE){
+	if(CurrentSize == FSIZE){
     		LostData++;
     		return -1;         // full
   	} else{
     		Fifo[PutI] = data; // Put
-    		PutI = (PutI+1)%FIFOSIZE;
+    		PutI = (PutI+1)%FSIZE;
     		OS_Signal(&CurrentSize);
     	return 0;          // success
  	}
@@ -254,10 +255,9 @@ uint32_t OS_FIFO_Get(void){uint32_t data;
 //***IMPLEMENT THIS***
 	OS_Wait(&CurrentSize);    // block if empty
   	data = Fifo[GetI];        // get
-  	GetI = (GetI+1)%FIFOSIZE; // place to get next
+  	GetI = (GetI+1)%FSIZE; // place to get next
   	return data;
 
-  return data;
 }
 
 
