@@ -19,7 +19,7 @@ struct tcb{
   int32_t *sp;       // pointer to stack (valid for threads not running
   struct tcb *next;  // linked-list pointer
   int32_t *blocked; // nonzero if blocked on this semaphore
-   // nonzero if this thread is sleeping
+  int32_t *Sleep; // nonzero if this thread is sleeping
 //*FILL THIS IN****
 };
 typedef struct tcb tcbType;
@@ -129,8 +129,14 @@ void OS_Launch(uint32_t theTimeSlice){
 // runs every ms
 void Scheduler(void){ // every time slice
 // ROUND ROBIN, skip blocked and sleeping threads
+  for(int i=0 ; i < 6 ; i++) {
+  	if ( TCB[i].sleep ) {
+		TCB[i].sleep--;
+	}
+  }
+	
   RunPt = RunPt->next;
-  while(RunPt->blocked){  // skip if blocked
+  while( RunPt->Sleep || RunPt->blocked ){  // skip if blocked
     RunPt = RunPt->next;
   } 
 }
@@ -154,6 +160,7 @@ void OS_Suspend(void){
 void OS_Sleep(uint32_t sleepTime){
 // set sleep parameter in TCB
 // suspend, stops running
+	RunPt->Sleep = sleepTime;
 }
 
 // ******** OS_InitSemaphore ************
