@@ -69,6 +69,8 @@ int OS_AddPeriodicEventThread(void(*thread)(void), uint32_t period);
 // Errors: theTimeSlice must be less than 16,777,216
 void OS_Launch(uint32_t theTimeSlice);
 
+void Dis_Sleep(void);
+
 //******** OS_Suspend ***************
 // Called by main thread to cooperatively suspend operation
 // Inputs: none

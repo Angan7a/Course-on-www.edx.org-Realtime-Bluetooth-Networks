@@ -19,7 +19,7 @@ struct tcb{
   int32_t *sp;       // pointer to stack (valid for threads not running
   struct tcb *next;  // linked-list pointer
   int32_t *blocked; // nonzero if blocked on this semaphore
-  int32_t *Sleep; // nonzero if this thread is sleeping
+  int32_t Sleep; // nonzero if this thread is sleeping
 //*FILL THIS IN****
 };
 typedef struct tcb tcbType;
@@ -86,6 +86,11 @@ int OS_AddThreads(void(*thread0)(void),
   SetInitialStack(4); Stacks[4][STACKSIZE-2] = (int32_t)(thread4); // PC
   SetInitialStack(5); Stacks[5][STACKSIZE-2] = (int32_t)(thread5); // PC
   RunPt = &tcbs[0];       // thread 0 will run first
+	for(int i=0 ; i < 6 ; i++) { //inicialization - any thread no blocked, no sleep
+		tcbs[i].blocked=0;
+		tcbs[i].Sleep=0;
+	}
+	BSP_PeriodicTask_Init(&Dis_Sleep,1000,2);
   EndCritical(status);
   return 1;               // successful
 }
@@ -126,15 +131,19 @@ void OS_Launch(uint32_t theTimeSlice){
   STCTRL = 0x00000007;         // enable, core clock and interrupt arm
   StartOS();                   // start on the first task
 }
+
+void Dis_Sleep(void){
+	for(int i=0 ; i < 6 ; i++) {
+  	if ( tcbs[i].Sleep ) {
+			tcbs[i].Sleep--;
+		}
+  }
+}
+
+
 // runs every ms
 void Scheduler(void){ // every time slice
 // ROUND ROBIN, skip blocked and sleeping threads
-  for(int i=0 ; i < 6 ; i++) {
-  	if ( TCB[i].sleep ) {
-		TCB[i].sleep--;
-	}
-  }
-	
   RunPt = RunPt->next;
   while( RunPt->Sleep || RunPt->blocked ){  // skip if blocked
     RunPt = RunPt->next;
