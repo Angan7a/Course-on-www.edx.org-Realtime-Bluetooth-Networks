@@ -485,7 +485,7 @@ int main(void){
 	OS_PeriodTrigger0_Init(&TakeSoundData,1);  // every 1 ms
 	OS_PeriodTrigger1_Init(&TakeAccelerationData,100); //every 100ms
   // when grading change 1000 to 4-digit number from edX
-  TExaS_Init(GRADER, 8864  );          // initialize the Lab 4 grader
+  TExaS_Init(GRADER, 8520  );          // initialize the Lab 4 grader
 //  TExaS_Init(LOGICANALYZER, 1000); // initialize the Lab 4 logic analyzer
   OS_Launch(BSP_Clock_GetFreq()/THREADFREQ); // doesn't return, interrupts enabled in here
   return 0;             // this never executes
@@ -603,8 +603,8 @@ int main_step1(void){
   OS_InitSemaphore(&sEF, 0);
   OS_AddThreads(&TaskA,0, &TaskB,1, &TaskC,2, &TaskD,3,
    	&TaskE,4, &TaskF,5, &TaskG,6, &TaskH,7);
-  TExaS_Init(LOGICANALYZER, 1000); // initialize the Lab 4 grader
-//  TExaS_Init(GRADESTEP1, 1000);    // initialize the Lab 4 grader
+  //TExaS_Init(LOGICANALYZER, 1000); // initialize the Lab 4 grader
+  TExaS_Init(GRADESTEP1, 1000);    // initialize the Lab 4 grader
   OS_Launch(BSP_Clock_GetFreq()/1000);
   return 0;             // this never executes
 }
@@ -712,8 +712,8 @@ int main_step2(void){
 	OS_PeriodTrigger1_Init(&sK,50);  // every 50ms
   OS_AddThreads(&TaskI,0, &TaskJ,1, &TaskK,2, &TaskL,3,
    	&TaskM,4, &TaskN,5, &TaskO,6, &TaskP,7);
-  TExaS_Init(LOGICANALYZER, 1000); // initialize the Lab 4 grader
-//  TExaS_Init(GRADESTEP2, 1000);    // initialize the Lab 4 grader
+ // TExaS_Init(LOGICANALYZER, 1000); // initialize the Lab 4 grader
+  TExaS_Init(GRADESTEP2, 1000);    // initialize the Lab 4 grader
   OS_Launch(BSP_Clock_GetFreq()/1000);
   return 0;             // this never executes
 }
@@ -759,7 +759,7 @@ void TaskR(void){ // consumer
 		OS_EdgeTrigger_Restart();
   }
 }
-int main_step3(void){
+int main_STEP3(void){
   OS_Init();
   Profile_Init();  // initialize the 7 hardware profiling pins
   OS_InitSemaphore(&sI, 0);
@@ -773,8 +773,8 @@ int main_step3(void){
 	OS_EdgeTrigger_Init(&sQ,2);
   OS_AddThreads(&TaskI,0, &TaskJ,1, &TaskK,2, &TaskL,3,
    	&TaskQ,4, &TaskR,5, &TaskO,6, &TaskP,7);
-  TExaS_Init(LOGICANALYZER, 1000); // initialize the Lab 4 grader
-//  TExaS_Init(GRADESTEP3, 1000);    // initialize the Lab 4 grader
+ //TExaS_Init(LOGICANALYZER, 1000); // initialize the Lab 4 grader
+  TExaS_Init(GRADESTEP3, 1000);    // initialize the Lab 4 grader
   OS_Launch(BSP_Clock_GetFreq()/1000);
   return 0;             // this never executes
 }
