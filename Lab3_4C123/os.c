@@ -19,12 +19,13 @@ struct tcb{
   int32_t *sp;       // pointer to stack (valid for threads not running
   struct tcb *next;  // linked-list pointer
   int32_t *blocked; // nonzero if blocked on this semaphore
-  int32_t Sleep; // nonzero if this thread is sleeping
+  uint32_t Sleep; // nonzero if this thread is sleeping
 //*FILL THIS IN****
 };
 typedef struct tcb tcbType;
 tcbType tcbs[NUMTHREADS];
 tcbType *RunPt;
+void (*tcb_event[NUMPERIODIC]) (void);
 int32_t Stacks[NUMTHREADS][STACKSIZE];
   
 
@@ -86,11 +87,11 @@ int OS_AddThreads(void(*thread0)(void),
   SetInitialStack(4); Stacks[4][STACKSIZE-2] = (int32_t)(thread4); // PC
   SetInitialStack(5); Stacks[5][STACKSIZE-2] = (int32_t)(thread5); // PC
   RunPt = &tcbs[0];       // thread 0 will run first
-	for(int i=0 ; i < 6 ; i++) { //inicialization - any thread no blocked, no sleep
+	for(int i=0 ; i < NUMTHREADS ; i++) { //inicialization - any thread no blocked, no sleep
 		tcbs[i].blocked=0;
 		tcbs[i].Sleep=0;
 	}
-	BSP_PeriodicTask_Init(&Dis_Sleep,1000,2);
+	BSP_PeriodicTask_InitB(runperiodicevents,1000,0);
   EndCritical(status);
   return 1;               // successful
 }
@@ -106,16 +107,30 @@ int OS_AddThreads(void(*thread0)(void),
 // These threads cannot spin, block, loop, sleep, or kill
 // These threads can call OS_Signal
 // In Lab 3 this will be called exactly twice
+
+int     nr_event_thread=1;
+
 int OS_AddPeriodicEventThread(void(*thread)(void), uint32_t period){
 // ****IMPLEMENT THIS****
-  return 1;
+	 int32_t status;
+	status = StartCritical();
+	if (nr_event_thread == 1)	BSP_PeriodicTask_Init(thread,(1000/period),nr_event_thread);
+	if (nr_event_thread == 2)	BSP_PeriodicTask_InitC(thread,(1000/period),nr_event_thread);
+	
+	nr_event_thread++;
+  EndCritical(status); 
+	return 1;
 
 }
 
 void static runperiodicevents(void){
 // ****IMPLEMENT THIS****
 // **RUN PERIODIC THREADS, DECREMENT SLEEP COUNTERS
-
+	for(int i=0 ; i < NUMTHREADS ; i++) {
+  	if ( tcbs[i].Sleep ) {
+			tcbs[i].Sleep--;
+		}
+  }
 }
 
 //******** OS_Launch ***************
@@ -132,20 +147,14 @@ void OS_Launch(uint32_t theTimeSlice){
   StartOS();                   // start on the first task
 }
 
-void Dis_Sleep(void){
-	for(int i=0 ; i < 6 ; i++) {
-  	if ( tcbs[i].Sleep ) {
-			tcbs[i].Sleep--;
-		}
-  }
-}
 
 
 // runs every ms
 void Scheduler(void){ // every time slice
 // ROUND ROBIN, skip blocked and sleeping threads
+	
   RunPt = RunPt->next;
-  while( RunPt->Sleep || RunPt->blocked ){  // skip if blocked
+  while( (RunPt->Sleep) || (RunPt->blocked) ){  // skip if blocked or sleeped
     RunPt = RunPt->next;
   } 
 }
@@ -170,6 +179,7 @@ void OS_Sleep(uint32_t sleepTime){
 // set sleep parameter in TCB
 // suspend, stops running
 	RunPt->Sleep = sleepTime;
+	OS_Suspend();
 }
 
 // ******** OS_InitSemaphore ************
@@ -239,7 +249,7 @@ void OS_FIFO_Init(void){
 	PutI = GetI = 0;
 	OS_InitSemaphore(&CurrentSize, 0);
 	LostData = 0;
-	//CurrentSize = 0;
+	CurrentSize = 0;
 }
 
 // ******** OS_FIFO_Put ************
@@ -269,7 +279,7 @@ int OS_FIFO_Put(uint32_t data){
 // Outputs: data retrieved
 uint32_t OS_FIFO_Get(void){uint32_t data;
 //***IMPLEMENT THIS***
-	OS_Wait(&CurrentSize);    // block if empty
+	  OS_Wait(&CurrentSize);    // block if empty
   	data = Fifo[GetI];        // get
   	GetI = (GetI+1)%FSIZE; // place to get next
   	return data;
