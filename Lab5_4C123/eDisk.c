@@ -73,16 +73,15 @@ enum DRESULT eDisk_ReadSector(
 // **write this function**
     uint8_t *point_sector;
 	point_sector = &(EDISK_ADDR_MIN + 512*sector);
- 	if (EDISK_ADDR_MIN + 512*sector <= EDISK_ADDR_MAX) {
+ 	if ( (EDISK_ADDR_MIN + 512*sector) <= EDISK_ADDR_MAX) {
 		for (int i=0; i <=512 ; i++) {
 			*buff = *ponit_sector;
 			buff++;
 			point_sector++;
 		}
 		return RES_OK;
-	}else{
-		return RES_PARERR;
 	}
+	return RES_PARERR;
 }
 
 //*************** eDisk_WriteSector ***********
@@ -103,9 +102,11 @@ enum DRESULT eDisk_WriteSector(
 // write 512 bytes from RAM (buff) into ROM (disk)
 // you can use Flash_FastWrite or Flash_WriteArray
 // **write this function**
-  
-			
-  return RES_OK;
+	if ( (EDISK_ADDR_MIN + 512*sector) <= EDISK_ADDR_MAX) {
+  		Flash_WriteArray(&buff, (EDISK_ADDR_MIN + 512*sector), 32);
+		return RES_OK;
+	}
+	return RES_PARERR;
 }
 
 //*************** eDisk_Format ***********
