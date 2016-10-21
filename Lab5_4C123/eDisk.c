@@ -71,9 +71,18 @@ enum DRESULT eDisk_ReadSector(
 // return RES_PARERR if EDISK_ADDR_MIN + 512*sector > EDISK_ADDR_MAX
 // copy 512 bytes from ROM (disk) into RAM (buff)
 // **write this function**
- 
-			
-  return RES_OK;
+    uint8_t *point_sector;
+	point_sector = &(EDISK_ADDR_MIN + 512*sector);
+ 	if (EDISK_ADDR_MIN + 512*sector <= EDISK_ADDR_MAX) {
+		for (int i=0; i <=512 ; i++) {
+			*buff = *ponit_sector;
+			buff++;
+			point_sector++;
+		}
+		return RES_OK;
+	}else{
+		return RES_PARERR;
+	}
 }
 
 //*************** eDisk_WriteSector ***********
