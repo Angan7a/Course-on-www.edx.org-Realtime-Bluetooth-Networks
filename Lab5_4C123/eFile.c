@@ -48,8 +48,29 @@ uint8_t lastsector(uint8_t start){
 // (i.e. the FAT is corrupted).
 uint8_t findfreesector(void){
 // **write this function**
-  
-  return 0; // replace this line
+	unit8_t i = 0;
+ 	unit8_t dirMAX_number = 0;
+	unit8_t dirCOMPARE_number = 0;
+	while ( i < 255) { 
+		dirMAX_number = Directory[i];
+		while ( FAT[dirMAX_number] != 255) {
+			dirMAX_number = FAT[dirMAX_number];
+		}
+		i++;
+		if (Directory[i] == 255) {	//if next item in Directory if 255 I found MAX
+			return dirMAX_number;
+		}else{				//else take next item in Directory and compare which is bigger
+			dirCOMPARE_number = Directory[i];
+			while ( FAT[dirCOMPARE_number] != 255) {
+				dirCOMPARE_number = FAT[dirCOMPARE_number];
+			}
+		dirMAX_number = max(dirMAX_number, dirCOMPARE_number);  //compare which is bigger
+		}
+		
+	}
+	dirMAX_number++;    //end of directory
+	dirMAX_number++;    //first of the free sector
+  return dirMAX_number; 
 }
 
 // Append a sector index 'n' at the end of file 'num'.
@@ -64,6 +85,7 @@ uint8_t appendfat(uint8_t num, uint8_t n){
 	
   return 0; // replace this line
 }
+  
 
 //********OS_File_New*************
 // Returns a file number of a new file for writing
@@ -72,8 +94,15 @@ uint8_t appendfat(uint8_t num, uint8_t n){
 // Errors: return 255 on failure or disk full
 uint8_t OS_File_New(void){
 // **write this function**
-  
-	
+	unit8_t file_number = 0;
+	while ( file_number < 255) {
+		if (Directory[file_number] == 255) {
+	  		Directory[file_number] = findfreesector();
+			return file_number;
+		}else{
+			file_number++;
+		}
+	}
   return 255;
 }
 
@@ -89,6 +118,7 @@ uint8_t OS_File_Size(uint8_t num){
   return 0; // replace this line
 }
 
+uint8_t i;
 //********OS_File_Append*************
 // Save 512 bytes into the file
 // Inputs:  num, 8-bit file number, 0 to 254
@@ -97,7 +127,9 @@ uint8_t OS_File_Size(uint8_t num){
 // Errors:  255 on failure or disk full
 uint8_t OS_File_Append(uint8_t num, uint8_t buf[512]){
 // **write this function**
-  
+  FAT[i] = num;
+  i++;
+  eDisk_WriteSector(num,buff);
   return 0; // replace this line
 }
 
