@@ -37,9 +37,11 @@ void MountDirectory(void){
 // if the file has no end (i.e. the FAT is corrupted).
 uint8_t lastsector(uint8_t start){
 // **write this function**
-  
+  	while ( FAT[start] != 255) {
+		start = FAT[start];
+	}
 	
-  return 0; // replace this line
+  return start; 
 }
 
 // Return the index of the first free sector.
@@ -52,23 +54,19 @@ uint8_t findfreesector(void){
  	unit8_t dirMAX_number = 0;
 	unit8_t dirCOMPARE_number = 0;
 	while ( i < 255) { 
-		dirMAX_number = Directory[i];
-		while ( FAT[dirMAX_number] != 255) {
-			dirMAX_number = FAT[dirMAX_number];
-		}
-		i++;
-		if (Directory[i] == 255) {	//if next item in Directory if 255 I found MAX
-			return dirMAX_number;
-		}else{				//else take next item in Directory and compare which is bigger
-			dirCOMPARE_number = Directory[i];
-			while ( FAT[dirCOMPARE_number] != 255) {
-				dirCOMPARE_number = FAT[dirCOMPARE_number];
+		if (Directory[i] == 255) {   //I found free sector
+			return i;
+		}else {
+		dirMax_number = lastsector( Directory[i] );
+		i++;    		//take next item in Directory
+			if (Directory[i] == 255) {	//if next item in Directory is 255 I found MAX
+				return dirMAX_number;
+			}else{				//else take next item in Directory and compare which is bigger
+				dirCOMPARE_number = lastsector( Directory[i] );
+				dirMAX_number = max(dirMAX_number, dirCOMPARE_number);  //compare which is bigger
 			}
-		dirMAX_number = max(dirMAX_number, dirCOMPARE_number);  //compare which is bigger
 		}
-		
 	}
-	dirMAX_number++;    //end of directory
 	dirMAX_number++;    //first of the free sector
   return dirMAX_number; 
 }
@@ -97,8 +95,7 @@ uint8_t OS_File_New(void){
 	unit8_t file_number = 0;
 	while ( file_number < 255) {
 		if (Directory[file_number] == 255) {
-	  		Directory[file_number] = findfreesector();
-			return file_number;
+	  		return file_number;
 		}else{
 			file_number++;
 		}
@@ -118,7 +115,7 @@ uint8_t OS_File_Size(uint8_t num){
   return 0; // replace this line
 }
 
-uint8_t i;
+
 //********OS_File_Append*************
 // Save 512 bytes into the file
 // Inputs:  num, 8-bit file number, 0 to 254
@@ -127,10 +124,23 @@ uint8_t i;
 // Errors:  255 on failure or disk full
 uint8_t OS_File_Append(uint8_t num, uint8_t buf[512]){
 // **write this function**
-  FAT[i] = num;
-  i++;
-  eDisk_WriteSector(num,buff);
-  return 0; // replace this line
+	uint8_t last, last_255, z;
+	if( Directory[num] == 255) { //that mean that file is empty
+		z = findfreesector();
+		eDisk_WriteSector( FAT[z], buff );
+		Directory[num] = z;
+	}
+	else {
+		last = lastsector( Directory[num] );
+		last255 = last;
+		FAT[last255] = findfreesector();     // place to write data instate 255
+			if ( FAT[last] < 255 ){
+				eDisk_WriteSector( FAT[last], buff );
+				return 0;
+			}else{
+				return 255;   //disk is full
+	}
+  
 }
 
 //********OS_File_Read*************
@@ -168,6 +178,11 @@ uint8_t OS_File_Format(void){
 // call eDiskFormat
 // clear bDirectoryLoaded to zero
 // **write this function**
-
+	uint32_t address;
+  	address = 0x00020000; // start of disk
+  	while(address <= 0x00040000){
+    		Flash_Erase(address); // erase 1k block
+    		address = address+1024;
+  	}
   return 0; // replace this line
 }
