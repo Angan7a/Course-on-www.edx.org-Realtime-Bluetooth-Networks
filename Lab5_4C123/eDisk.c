@@ -103,7 +103,7 @@ enum DRESULT eDisk_WriteSector(
 // you can use Flash_FastWrite or Flash_WriteArray
 // **write this function**
 	if ( (EDISK_ADDR_MIN + 512*sector) <= EDISK_ADDR_MAX) {
-  		Flash_WriteArray(&buff, (EDISK_ADDR_MIN + 512*sector), 32);
+  		Flash_WriteArray(&buff, (EDISK_ADDR_MIN + 512*sector), 512);
 		return RES_OK;
 	}
 	return RES_PARERR;
