@@ -26,16 +26,15 @@ void MountDirectory(void){
 //    set bDirectoryLoaded=1
 // if bDirectoryLoaded is 1, simply return
 // **write this function**
-uint8_t i;
-  if(bDirectoryLoaded==0){
+if(bDirectoryLoaded==0){
     eDisk_ReadSector(Buff,255);  // read disk sector 255
-    for(int i=0; i<255; i++){    // populate Directory and FAT
-      Directory[i]=Buff[i];
-      FAT[i]=Buff[i+256];
-    }
-    bDirectoryLoaded=1;          // bDirectoryLoaded equal to 1
-  }
-  return;
+	    for(uint16_t i=0; i<256; i++){    // populate Directory and FAT
+	      Directory[i]=Buff[i];
+	      FAT[i]=Buff[i+256];
+	    }
+    bDirectoryLoaded=1;          
+ }
+ return;
   
 	
 }
@@ -49,7 +48,6 @@ uint8_t lastsector(uint8_t start){
   	while ( FAT[start] != 255) {
 		start = FAT[start];
 	}
-	
   return start; 
 }
 
@@ -62,22 +60,22 @@ uint8_t findfreesector(void){
 	uint8_t i = 0;
  	uint8_t dirMAX_number = 0;
 	uint8_t dirCOMPARE_number = 0;
-	while ( i < 255) { 
-		if (Directory[i] == 255) {   //I found free sector
-			return i;
-		}else {
-		dirMAX_number = lastsector( Directory[i] );
-		i++;    		//take next item in Directory
-			if (Directory[i] == 255) {	//if next item in Directory is 255 I found MAX
-				return dirMAX_number;
-			}else{				//else take next item in Directory and compare which is bigger
-				dirCOMPARE_number = lastsector( Directory[i] );
-				dirMAX_number = max(dirMAX_number, dirCOMPARE_number);  //compare which is bigger
-			}
+	if( Directory[0] == 255) return 0;   //first alocate in FAT
+	while( Directory[i] != 255) {
+		dirCOMPARE_number = lastsector( Directory[i] );
+		dirMAX_number = max(dirMAX_number, dirCOMPARE_number);
+		i++;
+		if( Directory[i] == 255 ) {
+			dirMAX_number++;	   //first of the free sector
+			return dirMAX_number;
+		}else{
+			dirCOMPARE_number = lastsector( Directory[i] );
+			dirMAX_number = max(dirMAX_number, dirCOMPARE_number);  //compare which is bigge
+			i++;                  //-----it can be delete
 		}
 	}
-	dirMAX_number++;    //first of the free sector
-  return dirMAX_number; 
+	dirMAX_number++;	   //first of the free sector  //-----it can be delete
+	return dirMAX_number;			//-----it can be delete
 }
 
 // Append a sector index 'n' at the end of file 'num'.
@@ -101,6 +99,7 @@ uint8_t appendfat(uint8_t num, uint8_t n){
 // Errors: return 255 on failure or disk full
 uint8_t OS_File_New(void){
 // **write this function**
+	MountDirectory();
 	uint8_t file_number = 0;
 	while ( file_number < 255) {
 			if (Directory[file_number] == 255) {
@@ -119,9 +118,19 @@ uint8_t OS_File_New(void){
 // Errors:  none
 uint8_t OS_File_Size(uint8_t num){
 // **write this function**
-  
-	
-  return 0; // replace this line
+  unit8_t count=0;
+  unit8_t next;
+  next = Directory[num]	
+	 if( next == 255 ){
+		 return 0;  //file is empty
+	 }else{
+		 count++;
+		 	while( FAT[num] != 255) {
+				next = FAT[num];
+				count++;
+		 	}
+	 }
+  return count; // size of file
 }
 
 
@@ -136,22 +145,23 @@ uint8_t OS_File_Append(uint8_t num, uint8_t buf[512]){
 	uint8_t last, last255, z;
 	if( Directory[num] == 255) { //that mean that file is empty
 		z = findfreesector();
-		eDisk_WriteSector( buf , FAT[last] );
+		eDisk_WriteSector( buf , FAT[z] );
 		Directory[num] = z;
+		return 0;
 	}
 	else {
 		last = lastsector( Directory[num] );
 		last255 = last;
 		FAT[last255] = findfreesector();     // place to write data instate 255
 			if ( FAT[last] < 255 ){
-		eDisk_WriteSector( buf , FAT[last] );
+				eDisk_WriteSector( buf , FAT[last] );
 				return 0;
 			}else{
 				return 255;   //disk is full
-	}
+			}
   
-}
-					return 255;   //disk is full
+	}
+return 255;   //disk is full
 }
 
 //********OS_File_Read*************
@@ -176,8 +186,15 @@ uint8_t OS_File_Read(uint8_t num, uint8_t location,
 // Errors:  255 on disk write failure
 uint8_t OS_File_Flush(void){
 // **write this function**
-
-  return 0; // replace this line
+uint32_t Buff[512];
+    for(uint16_t i=0; i<256; i++){
+	   Buff[i] = Directory[i];
+	   Buff[i+256] = FAT[i];
+    }
+if( eDisk_WriteSector(Buff , 255) == RES_OK) {
+ 	return 0; //disk write success
+}
+  return 255; //disk write failure
 }
 
 //********OS_File_Format*************
