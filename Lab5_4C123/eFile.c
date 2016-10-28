@@ -71,11 +71,11 @@ uint8_t findfreesector(void){
 		}else{
 			dirCOMPARE_number = lastsector( Directory[i] );
 			dirMAX_number = max(dirMAX_number, dirCOMPARE_number);  //compare which is bigge
-			i++;                  //-----it can be delete
+		//	i++;                  //-----it can be delete
 		}
 	}
-	dirMAX_number++;	   //first of the free sector  //-----it can be delete
-	return dirMAX_number;			//-----it can be delete
+//	dirMAX_number++;	   //first of the free sector  //-----it can be delete
+//	return dirMAX_number;			//-----it can be delete
 }
 
 // Append a sector index 'n' at the end of file 'num'.
@@ -118,15 +118,15 @@ uint8_t OS_File_New(void){
 // Errors:  none
 uint8_t OS_File_Size(uint8_t num){
 // **write this function**
-  unit8_t count=0;
-  unit8_t next;
-  next = Directory[num]	
+  uint8_t count=0;
+  uint8_t next;
+  next = Directory[num];
 	 if( next == 255 ){
 		 return 0;  //file is empty
 	 }else{
 		 count++;
-		 	while( FAT[num] != 255) {
-				next = FAT[num];
+		 	while( FAT[next] != 255) {
+				next = FAT[next];
 				count++;
 		 	}
 	 }
@@ -145,8 +145,8 @@ uint8_t OS_File_Append(uint8_t num, uint8_t buf[512]){
 	uint8_t last, last255, z;
 	if( Directory[num] == 255) { //that mean that file is empty
 		z = findfreesector();
-		eDisk_WriteSector( buf , FAT[z] );
 		Directory[num] = z;
+		eDisk_WriteSector( buf , z );
 		return 0;
 	}
 	else {
@@ -174,8 +174,20 @@ return 255;   //disk is full
 uint8_t OS_File_Read(uint8_t num, uint8_t location,
                      uint8_t buf[512]){
 // **write this function**
-  
-  return 0; // replace this line
+  									 
+	uint8_t sector;
+uint16_t j;
+		
+sector=Directory[num];	//logical address for sector 0										 
+if (sector!=255){
+	for (j=1;j<=location;j++){
+		sector=FAT[sector]; //logical address for sector j
+		if (sector==255){
+			return 255;}
+	}
+	return eDisk_ReadSector(buf,sector);
+}	
+  return 255; // replace this line
 }
 
 //********OS_File_Flush*************
@@ -186,15 +198,16 @@ uint8_t OS_File_Read(uint8_t num, uint8_t location,
 // Errors:  255 on disk write failure
 uint8_t OS_File_Flush(void){
 // **write this function**
-uint32_t Buff[512];
+uint8_t Buff[512];
     for(uint16_t i=0; i<256; i++){
 	   Buff[i] = Directory[i];
 	   Buff[i+256] = FAT[i];
     }
-if( eDisk_WriteSector(Buff , 255) == RES_OK) {
+		int r=2;
+r= eDisk_WriteSector(Buff , 255);
  	return 0; //disk write success
-}
-  return 255; //disk write failure
+
+return 255; //disk write failure
 }
 
 //********OS_File_Format*************
@@ -210,4 +223,3 @@ uint8_t OS_File_Format(void){
 	bDirectoryLoaded=0;
   return 0; // replace this line
 }
-
